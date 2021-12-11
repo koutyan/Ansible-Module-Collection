@@ -1,0 +1,36 @@
+---
+# not_found_detectorモジュール時の引数はハードコーディング推奨(ここでは対象ノードは node1, node2 としている)
+# /etc/hosts でホスト名解決できていることが前提
+
+- hosts: all
+  tasks:
+    - name: 該当ログファイルの存在確認
+      find:
+        paths:
+          - ~/ansible_module_test
+        patterns: '^test.log$'
+        use_regex: yes
+      register: find_file_result
+    
+    - name: 該当ログファイル数の格納
+      set_fact:
+        matched_number: '{{ item }}'
+      with_items: '{{ find_file_result.matched }}'
+
+    - name: 該当ファイルがない場合、一時ファイルを作成
+      file:
+        path: ~/ansible_module_test/not_found.log
+        state: touch
+      when: matched_number == "0"
+
+# not_found_detectorモジュールはlocalhostから実行する
+- hosts: localhost
+  tasks:
+    - name: not_found_detectorモジュールの実行(全ノードに該当ファイルがない場合はfail)
+      not_found_detector:
+        path: ~/ansible_module_test/not_found.log
+        host: '{{ item }}'
+        username: hogehoge
+        password: hogehoge
+      with_list:
+        - [ 'node1', 'node2' ]

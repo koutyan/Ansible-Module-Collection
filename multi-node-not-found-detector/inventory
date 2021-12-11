@@ -1,0 +1,2 @@
+node1 ansible_host=192.168.11.102 ansible_python_interpreter=/usr/bin/python3
+node2 ansible_host=192.168.11.103
